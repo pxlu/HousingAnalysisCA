@@ -36,25 +36,6 @@ def get_specified_regions_data(specified_regions, data_dir):
 
   return {region.split("/")[-1].split("-")[:-1][0] : read_region_data(region) for region in req_table_regions}
 
-def compare_data(compare_data, compare_on=None, attr_list=[], num_months=24):
-
-  # For attribute in attr_list, compare the data over a num_months period
-  # If attr_list is empty, compare all attributes
-  # If num_months is not given, default is 24 month (2 year) period
-
-  try:
-    if compare_on is None:
-      raise hpc.InvalidComparisonException
-    if compare_on == 'regions':
-      placeholder = compare_regions(attr_list, num_months)
-    if compare_on == 'categories':
-      placeholder = compare_categories(attr_list, num_months)
-
-  except hpc.InvalidComparisonException:
-    print ""
-  except:
-    pass
-
 def compute_region_time(region_data, start_date, time_interval, interval_type):
 
   try:

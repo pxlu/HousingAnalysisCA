@@ -1,2 +1,0 @@
-class InvalidComparisonException(Exception):
-    pass
