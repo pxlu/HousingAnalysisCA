@@ -13,10 +13,6 @@ def get_regions(data_dir):
   csv_files = glob.glob(os.getcwd() + "/" + data_dir + "/*.csv")
   return csv_files
 
-def region_files_to_names(region_list):
-
-  return [csv_file.split("/")[-1].split("-")[:-1][0].capitalize() for csv_file in region_list]
-
 def read_region_data(csv_file_path):
 
   data = pd.read_csv(csv_file_path)
@@ -73,8 +69,6 @@ def get_growth_trend(start_date, time_interval, interval_type, region, select_on
 
 def compare_regions(to_compare_dict, start_date, time_interval, interval_type, attributes=[]):
 
-  # Attributes is categories in this case
-
   try:
     if len(attributes) == 0:
       raise ValueError
@@ -86,20 +80,35 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
       for df in to_compare_dict.values():
         out_data.append(df[0].loc[:, category])
         dates = df[0].loc[:, 'Date']
-        # Need to merge all the series of a specific category into a single dataframe indexed by date to compare
-        # Make a new dataframe comprised of all the individual Series, indexed by date
+
+      # Create the dataframe from the list of Series
       out_df = pd.concat(out_data, axis=1, keys=[k for k in to_compare_dict.keys()])
       out_df['Date'] = dates
+      # Create the average column
+      category_mean = pd.Series([row[:-1].mean() for index, row in out_df.iterrows()])
+      out_df['Average'] = category_mean
+      out_df = out_df[out_df.columns.tolist()[-2:] + out_df.columns.tolist()[:-2]]
+
+      # Change each row to the difference of the average
+      for index, row in out_df.iterrows():
+        for item in out_df.columns.tolist()[2:]:
+          out_df.loc[(index, item)] = out_df.loc[(index, item)] - out_df.loc[(index, 'Average')]
+
       start_index, time_interval_multi = compute_region_time(out_df, start_date, time_interval, interval_type)
       all_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
 
     return all_data
+
   except Exception, e:
     raise e
 
-def compare_categories(time_interval, attributes=[]):
+def compare_categories(data_dir, time_interval, attributes=[]):
 
   # Attributes is regions in this case
+
+  region_data = get_regions(data_dir)
+
+
 
   pass
 
@@ -110,6 +119,6 @@ def predict_by_interval(predict_on=None, num_months_prior=24, num_months_ahead=1
 if __name__ == '__main__':
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
   #print ya2
-  ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
-  asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
-  print asd['Composite_HPI']
+  # ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
+  # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
+  # print asd['Composite_HPI']
