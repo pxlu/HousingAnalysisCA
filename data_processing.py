@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 import glob
 import os
-
-import hp_classes as hpc
+from collections import OrderedDict
 
 def get_regions(data_dir):
 
@@ -83,10 +82,10 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
 
       # Create the dataframe from the list of Series
       out_df = pd.concat(out_data, axis=1, keys=[k for k in to_compare_dict.keys()])
-      out_df['Date'] = dates
       # Create the average column
-      category_mean = pd.Series([row[:-1].mean() for index, row in out_df.iterrows()])
+      category_mean = pd.Series([row.mean() for index, row in out_df.iterrows()])
       out_df['Average'] = category_mean
+      out_df['Date'] = dates
       out_df = out_df[out_df.columns.tolist()[-2:] + out_df.columns.tolist()[:-2]]
 
       # Change each row to the difference of the average
@@ -102,15 +101,42 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
   except Exception, e:
     raise e
 
-def compare_categories(data_dir, time_interval, attributes=[]):
+def compare_categories(data_dir, start_date, time_interval, interval_type, attributes=[]):
 
   # Attributes is regions in this case
 
-  region_data = get_regions(data_dir)
+  all_region_path = get_regions(data_dir)
+  all_region_data = OrderedDict()
 
+  for region_path in all_region_path:
+    csv_file = region_path.split("/")[-1]
+    if len(csv_file.split("_")) > 1:
+      all_region_data[" ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0]] = read_region_data(region_path)[0]
+    else:
+      all_region_data[csv_file.split("-")[:-1][0].capitalize()] = read_region_data(region_path)[0]
 
+  all_category_data = {}
+  for category in attributes:
+    category_data = []
+    dates = None
+    for region, data in all_region_data.items():
+      category_data.append(data.loc[:, category])
+      dates = data.loc[:, 'Date']
+    # Create the dataframe
+    out_df = pd.concat(category_data, axis=1, keys=[k for k in all_region_data.keys()])
+    # Assign the values to the respective columns
+    out_df['Date'] = dates
+    out_df = out_df[out_df.columns.tolist()[-1:] + out_df.columns.tolist()[:-1]]
+    # Change each row to the difference of the average
+    for index, row in out_df.iterrows():
+      for item in out_df.columns.tolist()[2:]:
+        out_df.loc[(index, item)] = out_df.loc[(index, item)] - out_df.loc[(index, 'Aggregate')]
+    # Section by specified time interval
+    start_index, time_interval_multi = compute_region_time(out_df, start_date, time_interval, interval_type)
+    # Add it to the dictionary
+    all_category_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
 
-  pass
+  return all_category_data
 
 def predict_by_interval(predict_on=None, num_months_prior=24, num_months_ahead=12):
 
@@ -122,3 +148,5 @@ if __name__ == '__main__':
   # ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
   # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
   # print asd['Composite_HPI']
+  vc = compare_categories('MLS_HPI_data_en', 0, 0, 0, ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
+  print vc
