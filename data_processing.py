@@ -29,14 +29,14 @@ def get_specified_regions_data(specified_regions, data_dir):
 
   for region in all_regions:
     csv_file = region.split("/")[-1]
-    if len(csv_file.split("_")) > 1 and " ".join(map(str.capitalize, csv_file.split("_"))).split("-")[:-1] in specified_regions:
+    if len(csv_file.split("_")) > 1 and " ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0] in specified_regions:
         req_table_regions.append(region)
     elif csv_file.split("-")[:-1][0].capitalize() in specified_regions:
       req_table_regions.append(region)
 
   return {region.split("/")[-1].split("-")[:-1][0] : read_region_data(region) for region in req_table_regions}
 
-def compare_data(compare_on=None, attr_list=[], num_months=24):
+def compare_data(compare_data, compare_on=None, attr_list=[], num_months=24):
 
   # For attribute in attr_list, compare the data over a num_months period
   # If attr_list is empty, compare all attributes
@@ -55,35 +55,66 @@ def compare_data(compare_on=None, attr_list=[], num_months=24):
   except:
     pass
 
-def get_growth_trend(start_date, time_interval, interval_type, region, select_on=None):
-
-  region_data, data_cols = read_region_data(region)
-  time_interval_multi = 1
+def compute_region_time(region_data, start_date, time_interval, interval_type):
 
   try:
+    time_interval_multi = 1
     start_index = region_data[region_data['Date'] == start_date].index.tolist()[0]
-    if select_on is None or select_on not in data_cols:
-      raise TypeError
 
     if interval_type == 'yearly':
       if time_interval < 12:
         raise ValueError
       time_interval_multi = 12
 
-    growth_trend = (region_data.loc[:, select_on] - region_data.shift(1*time_interval_multi).loc[:, select_on]) / region_data.shift(1*time_interval_multi).loc[:, select_on]
+    return start_index, time_interval_multi
+
+  except Exception as e:
+    print e
+
+def get_growth_trend(start_date, time_interval, interval_type, region, select_on=None):
+
+  region_data, data_cols = read_region_data(region)
+
+  try:
+    start_index, time_interval_multi = compute_region_time(region_data, start_date, time_interval, interval_type)
+
+    if select_on is None or select_on not in data_cols:
+      raise TypeError
+
+    growth_trend = (region_data.loc[:, select_on] - region_data.shift(time_interval_multi).loc[:, select_on]) / region_data.shift(time_interval_multi).loc[:, select_on]
 
     region_data.loc[:, " ".join([interval_type.capitalize(), 'Growth'])] = pd.Series(["{0:.2f}%".format(val * 100) for val in growth_trend])
 
-    return region_data[['Date', select_on, " ".join([interval_type.capitalize(), 'Growth'])]]
+    return region_data[['Date', select_on, " ".join([interval_type.capitalize(), 'Growth'])]][start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
 
   except Exception, e:
     raise e
 
-def compare_regions(time_interval, attributes=[]):
+def compare_regions(to_compare_dict, start_date, time_interval, interval_type, attributes=[]):
 
   # Attributes is categories in this case
 
-  pass
+  try:
+    if len(attributes) == 0:
+      raise ValueError
+
+    all_data = {}
+    for category in attributes:
+      out_data = []
+      dates = None      
+      for df in to_compare_dict.values():
+        out_data.append(df[0].loc[:, category])
+        dates = df[0].loc[:, 'Date']
+        # Need to merge all the series of a specific category into a single dataframe indexed by date to compare
+        # Make a new dataframe comprised of all the individual Series, indexed by date
+      out_df = pd.concat(out_data, axis=1, keys=[k for k in to_compare_dict.keys()])
+      out_df['Date'] = dates
+      start_index, time_interval_multi = compute_region_time(out_df, start_date, time_interval, interval_type)
+      all_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
+
+    return all_data
+  except Exception, e:
+    raise e
 
 def compare_categories(time_interval, attributes=[]):
 
@@ -96,5 +127,8 @@ def predict_by_interval(predict_on=None, num_months_prior=24, num_months_ahead=1
   pass
 
 if __name__ == '__main__':
-  ya2 = get_growth_trend('Jan 2005', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
-  print ya2.head(n=36)
+  #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
+  #print ya2
+  ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
+  asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
+  print asd['Composite_HPI']
