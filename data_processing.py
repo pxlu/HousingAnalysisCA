@@ -3,6 +3,8 @@ import numpy as np
 import glob
 import os
 from collections import OrderedDict
+from scipy import stats
+from sklearn import linear_model
 
 def get_regions(data_dir):
 
@@ -138,9 +140,27 @@ def compare_categories(data_dir, start_date, time_interval, interval_type, attri
 
   return all_category_data
 
-def predict_by_interval(predict_on=None, num_months_prior=24, num_months_ahead=12):
+def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
-  pass
+  dates = [j for j, element in enumerate(data[predict_on]['Date'])]
+  region_data = [element for element in data[predict_on][predict_regions]]
+
+  if num_months_prior is None:
+    num_months_prior = len(dates)
+
+  if num_months_prior > len(dates) or not predict_on or not predict_regions:
+    raise ValueError
+
+  dates = np.reshape(dates[-num_months_prior:], (len(dates[-num_months_prior:]), 1))
+  region_data = np.reshape(region_data[-num_months_prior:], (len(region_data[-num_months_prior:]), 1))
+
+  linear_mod = linear_model.LinearRegression()
+  linear_mod.fit(dates, region_data)
+ 
+  prediction = linear_mod.predict(len(dates) + num_months_ahead)
+
+  # prediction, slope, y-intercept
+  return prediction[0][0], linear_mod.coef_[0][0], linear_mod.intercept_[0]
 
 if __name__ == '__main__':
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
@@ -148,5 +168,8 @@ if __name__ == '__main__':
   # ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
   # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
   # print asd['Composite_HPI']
-  vc = compare_categories('MLS_HPI_data_en', 0, 0, 0, ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
-  print vc
+  vc = compare_categories('MLS_HPI_data_en', 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
+  predicted_price, coef, y_int = predict_by_interval(vc, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
+  print predicted_price, coef, y_int
+  #for key, val in vc.items():
+  #  print key
