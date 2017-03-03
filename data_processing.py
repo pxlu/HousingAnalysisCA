@@ -24,6 +24,18 @@ def get_specified_regions_data(specified_regions, data_dir):
   all_regions = get_regions(data_dir)
   req_table_regions = []
 
+  if isinstance(specified_regions, str):
+    all_region_data = OrderedDict()
+
+    for region_path in all_regions:
+      csv_file = region_path.split("/")[-1]
+      if len(csv_file.split("_")) > 1:
+        all_region_data[" ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0]] = read_region_data(region_path)[0]
+      else:
+        all_region_data[csv_file.split("-")[:-1][0].capitalize()] = read_region_data(region_path)[0]
+
+    return all_region_data
+
   for region in all_regions:
     csv_file = region.split("/")[-1]
     if len(csv_file.split("_")) > 1 and " ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0] in specified_regions:
@@ -103,29 +115,19 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
   except Exception, e:
     raise e
 
-def compare_categories(data_dir, start_date, time_interval, interval_type, attributes=[]):
+def compare_categories(to_compare_data, start_date, time_interval, interval_type, attributes=[]):
 
-  # Attributes is regions in this case
-
-  all_region_path = get_regions(data_dir)
-  all_region_data = OrderedDict()
-
-  for region_path in all_region_path:
-    csv_file = region_path.split("/")[-1]
-    if len(csv_file.split("_")) > 1:
-      all_region_data[" ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0]] = read_region_data(region_path)[0]
-    else:
-      all_region_data[csv_file.split("-")[:-1][0].capitalize()] = read_region_data(region_path)[0]
+  # Attributes is regions in this cases
 
   all_category_data = {}
   for category in attributes:
     category_data = []
     dates = None
-    for region, data in all_region_data.items():
+    for region, data in to_compare_data.items():
       category_data.append(data.loc[:, category])
       dates = data.loc[:, 'Date']
     # Create the dataframe
-    out_df = pd.concat(category_data, axis=1, keys=[k for k in all_region_data.keys()])
+    out_df = pd.concat(category_data, axis=1, keys=[k for k in to_compare_data.keys()])
     # Assign the values to the respective columns
     out_df['Date'] = dates
     out_df = out_df[out_df.columns.tolist()[-1:] + out_df.columns.tolist()[:-1]]
@@ -142,8 +144,9 @@ def compare_categories(data_dir, start_date, time_interval, interval_type, attri
 
 def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
-  dates = [j for j, element in enumerate(data[predict_on]['Date'])]
-  region_data = [element for element in data[predict_on][predict_regions]]
+  dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[predict_regions][0]['Date'])]), 12))]
+  region_data = [element for element in data[predict_regions][0][predict_on]]
+  region_data = [sum(region_data[current: current+12])/12 for current in xrange(0, len(region_data), 12)]
 
   if num_months_prior is None:
     num_months_prior = len(dates)
@@ -151,7 +154,7 @@ def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_
   if num_months_prior > len(dates) or not predict_on or not predict_regions:
     raise ValueError
 
-  dates = np.reshape(dates[-num_months_prior:], (len(dates[-num_months_prior:]), 1))
+  dates = np.reshape(dates[:num_months_prior], (len(dates[:num_months_prior]), 1))
   region_data = np.reshape(region_data[-num_months_prior:], (len(region_data[-num_months_prior:]), 1))
 
   linear_mod = linear_model.LinearRegression()
@@ -163,13 +166,29 @@ def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_
   return prediction[0][0], linear_mod.coef_[0][0], linear_mod.intercept_[0]
 
 if __name__ == '__main__':
+
+  # Use cases:
+    # 1a. Use get_specified_regions_data -> Get data for those regions
+    # 1b. Feed it into compare_regions with a list of attributes to compare to in order to see the difference between them
+
+    # 2a. get_specified_regions_data -> Get data for those regions
+    # 2b. Use predict_by_interval to predict future prices with those values
+
+    # Have to redo compare_categories to be the same format as compare_regions
+
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
   #print ya2
-  # ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
+  ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
+  # print ar
+  ar2 = get_specified_regions_data('all', 'MLS_HPI_data_en')
+  # print ar2
+  # print ar['Victoria'][0]['One_Storey_Benchmark']
+  # print ar['Victoria'][0]['Composite_HPI']
   # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
   # print asd['Composite_HPI']
-  vc = compare_categories('MLS_HPI_data_en', 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
-  predicted_price, coef, y_int = predict_by_interval(vc, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
-  print predicted_price, coef, y_int
+  vc = compare_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
+  print vc
+  # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
+  # print predicted_price, coef, y_int
   #for key, val in vc.items():
-  #  print key
+  #  print val
