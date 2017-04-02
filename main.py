@@ -1,8 +1,37 @@
 import sys
 import data_processing as dps
 
+data_source = 'MLS_HPI_data_en'
+
 def main():
-	pass
+  options_list = ['Q', 'C', 'D']
+  print 'Hi! Welcome to Housing Projections, created to help you analyze data for the housing market in major Canadian cities.'
+  prompt = options_prompt()
+  city_list = dps.get_region_names(data_source)
+
+  try:
+    if prompt not in options_list:
+      raise ValueError
+    if prompt == 'Q':
+      print 'Thanks for using Housing Projections!'
+      sys.exit(0)
+    elif prompt == 'C':
+      print city_list
+    elif prompt == 'D':
+      city_choice = raw_input('Please select a city from the available data.\n>>> ')
+  except ValueError:
+    print 'Sorry, that is not a valid option.'
+  finally:
+    options_prompt()
+
+def options_prompt():
+  prompt = raw_input('Please select a option:\
+    \n[C]: Get the list of city information available\
+    \n[D]: Get data for a specific city\
+    \n[Q]: Save and Quit\
+    \n>>> ')
+
+  return prompt
 
 # Get the trend over a 2, 5, and 10 year periods of growth or decay
 # Same as describe():
@@ -26,4 +55,4 @@ def main():
   # > Option to predict X time intervals into the future
 
 if __name__=='__main__':
-	print sys.version
+	main()
