@@ -24,6 +24,10 @@ def read_region_data(csv_file_path):
   data = pd.read_csv(csv_file_path)
   return (data, data.columns.values)
 
+def get_available_categories(data_dir):
+
+  return read_region_data(get_regions(data_dir)[0])[1]
+
 def get_specified_regions_data(specified_regions, data_dir):
 
   all_regions = get_regions(data_dir)
@@ -188,8 +192,8 @@ if __name__ == '__main__':
   print reg2
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
   #print ya2
-  # ar = get_specified_regions_data(['Victoria', 'Regina', 'Greater Toronto'], 'MLS_HPI_data_en')
-  # print ar
+  ar = get_specified_regions_data(['Victoria'], 'MLS_HPI_data_en')
+  print ar['Victoria'][1]
   # ar2 = get_specified_regions_data('all', 'MLS_HPI_data_en')
   # print ar2
   # print ar['Victoria'][0]['One_Storey_Benchmark']
