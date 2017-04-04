@@ -1,7 +1,7 @@
 import sys
 import data_processing as dps
 
-data_source = 'MLS_HPI_data_en'
+data_source = '../MLS_HPI_data_en'
 
 def main():
   options_list = ['Q', 'C1', 'C2', 'D']
