@@ -39,9 +39,9 @@ def get_specified_regions_data(specified_regions, data_dir):
     for region_path in all_regions:
       csv_file = region_path.split("/")[-1]
       if len(csv_file.split("_")) > 1:
-        all_region_data[" ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0]] = read_region_data(region_path)[0]
+        all_region_data[" ".join(map(str.capitalize, csv_file.split("_"))).split("-")[0]] = read_region_data(region_path)
       else:
-        all_region_data[csv_file.split("-")[:-1][0].capitalize()] = read_region_data(region_path)[0]
+        all_region_data[csv_file.split("-")[:-1][0].capitalize()] = read_region_data(region_path)
 
     return all_region_data
 
@@ -185,17 +185,17 @@ if __name__ == '__main__':
 
     # Have to redo compare_categories to be the same format as compare_regions
 
-  reg = get_regions('MLS_HPI_data_en')
+  # reg = get_regions('MLS_HPI_data_en')
   # print reg
 
   reg2 = get_region_names('MLS_HPI_data_en')
   print reg2
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
   #print ya2
-  ar = get_specified_regions_data(['Victoria'], 'MLS_HPI_data_en')
-  print ar['Victoria'][1]
-  # ar2 = get_specified_regions_data('all', 'MLS_HPI_data_en')
-  # print ar2
+  ar = get_specified_regions_data(['Victoria'], '../MLS_HPI_data_en')
+  print type(ar['Victoria'])
+  ar2 = get_specified_regions_data('all', '../MLS_HPI_data_en')
+  print type(ar2['Victoria'])
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
   # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
