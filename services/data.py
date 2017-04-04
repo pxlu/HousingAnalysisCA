@@ -3,7 +3,7 @@ from . import prep_df_for_json, nice_json, dps, data_source
 
 app = Flask(__name__)
 
-cities_data = prep_df_for_json(dps.get_specified_regions_data(['Victoria', 'Calgary'], data_source))
+cities_data = prep_df_for_json(dps.get_specified_regions_data('all', data_source))
 
 # Data for all cities
 @app.route('/data')

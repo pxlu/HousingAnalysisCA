@@ -19,3 +19,13 @@ def nice_json(arg, status=200):
   response.status_code = status
   response.headers['Content-Type'] = "application/json"
   return response
+
+from werkzeug.routing import BaseConverter
+
+class ListConverter(BaseConverter):
+
+  def to_python(self, value):
+    return value.split('&')
+
+  def to_url(self, values):
+    return '&'.join(BaseConverter.to_url(value) for value in values)
