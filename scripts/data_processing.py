@@ -54,16 +54,22 @@ def get_specified_regions_data(specified_regions, data_dir):
 
   return {region.split("/")[-1].split("-")[:-1][0] : read_region_data(region) for region in req_table_regions}
 
-def get_specified_category_data(specified_categories, regions_data):
+def get_specified_category_data(specified_categories, regions_data, data_dir):
+
+  if specified_categories == 'all':
+    specified_categories = get_available_categories(data_dir)
 
   category_data = {}
   for category in specified_categories:
     category_frame = []
     region_names = []
+    dates = None
     for key,value in regions_data.items():
       category_frame.append(value[0][category])
       region_names.append(key)
+      dates = value[0]['Date']
     out_df = pd.concat(category_frame, axis=1, keys=[name for name in region_names])
+    out_df['Date'] = dates
     category_data[category] = out_df
 
   return category_data
@@ -209,7 +215,9 @@ if __name__ == '__main__':
   # ar = get_specified_regions_data(['Victoria'], '../MLS_HPI_data_en')
   # print type(ar['Victoria'][0]['One_Storey_HPI'])
   ar2 = get_specified_regions_data('all', '../MLS_HPI_data_en')
-  cat_data = get_specified_category_data(['One_Storey_Benchmark'], ar2)
+  cat_data = get_specified_category_data(['One_Storey_Benchmark'], ar2, '../MLS_HPI_data_en')
+  # print cat_data
+  print cat_data['One_Storey_Benchmark'].set_index('Date')
   # print cat_data
   # print type(ar2['Victoria'])
   # print ar['Victoria'][0]['One_Storey_Benchmark']
