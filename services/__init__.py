@@ -5,7 +5,7 @@ import pandas as pd
 
 data_source = 'MLS_HPI_data_en'
 
-def prep_df_for_json(dataframe_dict):
+def regions_df_to_json(dataframe_dict):
 
   out = {}
   for key in dataframe_dict.keys():
@@ -13,6 +13,10 @@ def prep_df_for_json(dataframe_dict):
     out[key] = dataframe.to_dict()
 
   return out
+
+def df_dict_to_json(dataframe_dict):
+
+  return {key : value.to_dict() for key, value in dataframe_dict.items()}
 
 def nice_json(arg, status=200):
   response = make_response(json.dumps(arg, sort_keys=True, indent=4))

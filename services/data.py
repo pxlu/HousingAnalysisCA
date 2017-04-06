@@ -1,9 +1,9 @@
 from flask import Flask
-from . import prep_df_for_json, nice_json, dps, data_source
+from . import regions_df_to_json, nice_json, dps, data_source
 
 app = Flask(__name__)
 
-cities_data = prep_df_for_json(dps.get_specified_regions_data('all', data_source))
+cities_data = regions_df_to_json(dps.get_specified_regions_data('all', data_source))
 regions_data = dps.get_specified_regions_data('all', data_source)
 
 # Data for all cities
