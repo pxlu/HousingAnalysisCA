@@ -137,7 +137,7 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
           out_df.loc[(index, item)] = out_df.loc[(index, item)] - out_df.loc[(index, 'Average')]
 
       start_index, time_interval_multi = compute_region_time(out_df, start_date, time_interval, interval_type)
-      all_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
+      all_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi].set_index('Date')
 
     return all_data
 
@@ -153,8 +153,8 @@ def compare_categories(to_compare_data, start_date, time_interval, interval_type
     category_data = []
     dates = None
     for region, data in to_compare_data.items():
-      category_data.append(data.loc[:, category])
-      dates = data.loc[:, 'Date']
+      category_data.append(data[0].loc[:, category])
+      dates = data[0].loc[:, 'Date']
     # Create the dataframe
     out_df = pd.concat(category_data, axis=1, keys=[k for k in to_compare_data.keys()])
     # Assign the values to the respective columns
@@ -212,18 +212,17 @@ if __name__ == '__main__':
   #print reg2
   #ya2 = get_growth_trend('Jan 2006', 24, 'monthly', '/Users/peter/gitProjects/HousingProjections/MLS_HPI_data_en/Victoria-Table 1.csv', 'Composite_Benchmark')
   #print ya2
-  # ar = get_specified_regions_data(['Victoria'], '../MLS_HPI_data_en')
+  ar = get_specified_regions_data(['Victoria'], '../MLS_HPI_data_en')
+  # print ar
   # print type(ar['Victoria'][0]['One_Storey_HPI'])
   ar2 = get_specified_regions_data('all', '../MLS_HPI_data_en')
-  cat_data = get_specified_category_data(['One_Storey_Benchmark'], ar2, '../MLS_HPI_data_en')
-  # print cat_data
-  print cat_data['One_Storey_Benchmark'].set_index('Date')
+  # cat_data = get_specified_category_data(['One_Storey_Benchmark'], ar2, '../MLS_HPI_data_en')
   # print cat_data
   # print type(ar2['Victoria'])
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
-  # asd = compare_regions(ar, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
-  # print asd['Composite_HPI']
+  asd = compare_regions(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
+  print asd['Composite_HPI']
   # vc = compare_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
   # print vc
   # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
