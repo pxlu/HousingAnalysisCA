@@ -3,7 +3,6 @@ import numpy as np
 import glob
 import os
 from collections import OrderedDict
-from scipy import stats
 from sklearn import linear_model
 
 def get_regions(data_dir):
@@ -112,6 +111,7 @@ def get_growth_trend(start_date, time_interval, interval_type, region, select_on
 def compare_on_categories(to_compare_dict, start_date='Jan 2005', time_interval=12, interval_type='monthly', attributes=[]):
 
   # THIS COMPARES REGIONS ON SPECIFIC CATEGORIES
+  # uses data from get_specified_regions_data with 'all' as a paramter for to_compare_dict
   '''
   out: the data for specific categories across all cities
   '''
@@ -149,17 +149,47 @@ def compare_on_categories(to_compare_dict, start_date='Jan 2005', time_interval=
   except Exception, e:
     raise e
 
-def compare_on_regions(to_compare_data, start_date, time_interval, interval_type, cities=[]):
+def compare_on_regions(to_compare_dict, start_date, time_interval, interval_type, cities=[]):
 
   # Attributes is regions in this cases
   # Have to completely rewrite, need to make it comparing categories across all cities 
   # THIS COMPARES CATEGORIES ON SPECIFIC CITIES
+  # uses data from get_specified_regions_data with 'all' as a paramter for to_compare_dict
 
-  pass
-  '''
+  """
+  This function does...
+
+  params:
+    to_compare_dict:
+    start_date:
+    time_interval:
+    interval_type:
+    cities:
+
+  returns:
+    city_dict:
+  """
+
+  # STILL NEED TO IMPLEMENT THE start_date, time_interval, and interval_type aspects
+
+  city_dict = {}
+
   for city in cities:
-  '''
+    for key,value in to_compare_dict.items():
+      if key == city:
+        out_df = value[0]
+        # need 2 means, one by HPI and one by benchmark
+        # need to find a better way to indexing by name instead, so if the order ever changes this won't break
+        mean_by_HPI = pd.Series([row.mean() for index, row in value[0].iloc[:, 1:7].iterrows()])
+        mean_by_benchmark = pd.Series([row.mean() for index, row in value[0].iloc[:, 7:].iterrows()])
+        out_df['HPI Average'] = mean_by_HPI
+        out_df['Benchmark Average'] = mean_by_benchmark
+        out_df = out_df[out_df.columns.tolist()[-2:] + out_df.columns.tolist()[:-2]]
+        out_df = out_df.set_index('Date')
 
+        city_dict[key] = out_df
+
+  return city_dict
 
 def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
@@ -208,12 +238,12 @@ if __name__ == '__main__':
   ar2 = get_specified_regions_data('all', '../MLS_HPI_data_en')
   # cat_data = get_specified_category_data(['One_Storey_Benchmark'], ar2, '../MLS_HPI_data_en')
   # print cat_data
-  # print type(ar2['Victoria'])
+  # print ar2['Victoria']
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
   # asd = compare_on_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
   # print asd['Composite_HPI']
-  vc = compare_on_regions(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
+  vc = compare_on_regions(ar2, 'Jan 2005', 12, 'monthly', ['Victoria'])
   print vc
   # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
   # print predicted_price, coef, y_int
