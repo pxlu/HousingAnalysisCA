@@ -109,7 +109,12 @@ def get_growth_trend(start_date, time_interval, interval_type, region, select_on
   except Exception, e:
     raise e
 
-def compare_regions(to_compare_dict, start_date, time_interval, interval_type, attributes=[]):
+def compare_on_categories(to_compare_dict, start_date='Jan 2005', time_interval=12, interval_type='monthly', attributes=[]):
+
+  # THIS COMPARES REGIONS ON SPECIFIC CATEGORIES
+  '''
+  out: the data for specific categories across all cities
+  '''
 
   try:
     if len(attributes) == 0:
@@ -144,32 +149,17 @@ def compare_regions(to_compare_dict, start_date, time_interval, interval_type, a
   except Exception, e:
     raise e
 
-def compare_categories(to_compare_data, start_date, time_interval, interval_type, attributes=[]):
+def compare_on_regions(to_compare_data, start_date, time_interval, interval_type, cities=[]):
 
   # Attributes is regions in this cases
+  # Have to completely rewrite, need to make it comparing categories across all cities 
+  # THIS COMPARES CATEGORIES ON SPECIFIC CITIES
 
-  all_category_data = {}
-  for category in attributes:
-    category_data = []
-    dates = None
-    for region, data in to_compare_data.items():
-      category_data.append(data[0].loc[:, category])
-      dates = data[0].loc[:, 'Date']
-    # Create the dataframe
-    out_df = pd.concat(category_data, axis=1, keys=[k for k in to_compare_data.keys()])
-    # Assign the values to the respective columns
-    out_df['Date'] = dates
-    out_df = out_df[out_df.columns.tolist()[-1:] + out_df.columns.tolist()[:-1]]
-    # Change each row to the difference of the average
-    for index, row in out_df.iterrows():
-      for item in out_df.columns.tolist()[2:]:
-        out_df.loc[(index, item)] = out_df.loc[(index, item)] - out_df.loc[(index, 'Aggregate')]
-    # Section by specified time interval
-    start_index, time_interval_multi = compute_region_time(out_df, start_date, time_interval, interval_type)
-    # Add it to the dictionary
-    all_category_data[category] = out_df[start_index:start_index+time_interval*time_interval_multi:time_interval_multi]
+  pass
+  '''
+  for city in cities:
+  '''
 
-  return all_category_data
 
 def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
@@ -221,10 +211,10 @@ if __name__ == '__main__':
   # print type(ar2['Victoria'])
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
-  asd = compare_regions(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
-  print asd['Composite_HPI']
-  # vc = compare_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
-  # print vc
+  # asd = compare_on_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
+  # print asd['Composite_HPI']
+  vc = compare_on_regions(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI', 'One_Storey_Benchmark'])
+  print vc
   # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
   # print predicted_price, coef, y_int
   #for key, val in vc.items():
