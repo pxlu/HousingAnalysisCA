@@ -3,17 +3,16 @@ from . import dps, data_source, nice_json, df_dict_to_json, regions_df_to_json,L
 
 app = Flask(__name__)
 
-cities_data = regions_df_to_json(dps.get_specified_regions_data('all', data_source))
 regions_data = dps.get_specified_regions_data('all', data_source)
 app.url_map.converters['list'] = ListConverter
 
-@app.route('/compare/<list:cities_to_compare>')
-def compare_cities(cities_to_compare):
+@app.route('/compare/<list:params>')
+def compare_cities(params):
 
-  cities = []
-  for city in cities_to_compare:
-    cities.append(city)
+  parameters = {str(param.split("=")[0]) : str(param.split("=")[1]) for param in params}
+  for key, value in parameters.items():
+    parameters[key] = value.split('+')
 
-  compared_regions_data = dps.compare_on_regions(regions_data, None, None, None, cities=cities)
-
-  return nice_json(df_dict_to_json(compared_regions_data))
+  out = dps.compare_on_regions(regions_data, None, None, None, cities=parameters['Cities'])
+  
+  return nice_json(df_dict_to_json(out))
