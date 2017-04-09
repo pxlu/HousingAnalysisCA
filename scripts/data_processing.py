@@ -108,7 +108,7 @@ def get_growth_trend(start_date, time_interval, interval_type, region, select_on
   except Exception, e:
     raise e
 
-def compare_on_categories(to_compare_dict, start_date='Jan 2005', time_interval=12, interval_type='monthly', attributes=[]):
+def compare_on_categories(to_compare_dict, attributes, start_date='Jan 2005', time_interval=12, interval_type='monthly'):
 
   # THIS COMPARES REGIONS ON SPECIFIC CATEGORIES
   # uses data from get_specified_regions_data with 'all' as a paramter for to_compare_dict
@@ -149,7 +149,7 @@ def compare_on_categories(to_compare_dict, start_date='Jan 2005', time_interval=
   except Exception, e:
     raise e
 
-def compare_on_regions(to_compare_dict, start_date, time_interval, interval_type, cities=[]):
+def compare_on_regions(to_compare_dict, cities, start_date='Jan 2005', time_interval=12, interval_type='monthly'):
 
   # Attributes is regions in this cases
   # Have to completely rewrite, need to make it comparing categories across all cities 
@@ -191,6 +191,13 @@ def compare_on_regions(to_compare_dict, start_date, time_interval, interval_type
 
   return city_dict
 
+def compare_on(compare_type, to_compare_dict, values, start_date='Jan 2005', time_interval=12, interval_type='monthly'):
+
+  if compare_type == 'cities':
+    return compare_on_regions(to_compare_dict, values, start_date=start_date, time_interval=time_interval, interval_type=interval_type)
+  else:
+    return compare_on_categories(to_compare_dict, values, start_date=start_date, time_interval=time_interval, interval_type=interval_type)
+
 def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
   dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[predict_regions][0]['Date'])]), 12))]
@@ -222,8 +229,6 @@ if __name__ == '__main__':
 
     # 2a. get_specified_regions_data -> Get data for those regions
     # 2b. Use predict_by_interval to predict future prices with those values
-
-    # Have to redo compare_categories to be the same format as compare_regions
 
   # reg = get_regions('MLS_HPI_data_en')
   # print reg
