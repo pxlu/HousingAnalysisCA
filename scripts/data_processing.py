@@ -241,10 +241,10 @@ if __name__ == '__main__':
   # print ar2['Victoria']
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
-  # asd = compare_on_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
-  # print asd['Composite_HPI']
-  vc = compare_on_regions(ar2, None, None, None, ['Victoria', 'Calgary'])
-  print vc
+  asd = compare_on_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
+  print asd
+  # vc = compare_on_regions(ar2, None, None, None, ['Victoria', 'Calgary'])
+  # print vc
   # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
   # print predicted_price, coef, y_int
   #for key, val in vc.items():
