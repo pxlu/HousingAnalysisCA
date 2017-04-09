@@ -1,9 +1,7 @@
 from flask import Flask
-from . import dps, data_source, nice_json, df_dict_to_json, regions_df_to_json,ListConverter
+from . import dps, regions_data, nice_json, df_dict_to_json, regions_df_to_json,ListConverter
 
 app = Flask(__name__)
-
-regions_data = dps.get_specified_regions_data('all', data_source)
 app.url_map.converters['list'] = ListConverter
 
 def evaluate_params(params):

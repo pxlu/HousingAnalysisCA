@@ -4,6 +4,7 @@ import json
 import pandas as pd
 
 data_source = 'MLS_HPI_data_en'
+regions_data = dps.get_specified_regions_data('all', data_source)
 
 def regions_df_to_json(dataframe_dict):
 
