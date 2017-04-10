@@ -198,16 +198,20 @@ def compare_on(compare_type, to_compare_dict, values, start_date='Jan 2005', tim
   else:
     return compare_on_categories(to_compare_dict, values, start_date=start_date, time_interval=time_interval, interval_type=interval_type)
 
-def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
+def predict_by_interval(data, predict_on=None, predict_region=None, num_months_prior=None, num_months_ahead=12):
 
-  dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[predict_regions][0]['Date'])]), 12))]
-  region_data = [element for element in data[predict_regions][0][predict_on]]
+  # NEED TO MAKE PREDICT WORK FOR A LIST OF REGIONS, CURRENTLY ONLY WORKS FOR ONE AS IT ONLY TAKES IN ONE REGIONS AT A TIME
+
+  # JUST MAKE A FOR LOOP OR SOMETHING...
+
+  dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[predict_region][0]['Date'])]), 12))]
+  region_data = [element for element in data[predict_region][0][predict_on]]
   region_data = [sum(region_data[current: current+12])/12 for current in xrange(0, len(region_data), 12)]
 
   if num_months_prior is None:
     num_months_prior = len(dates)
 
-  if num_months_prior > len(dates) or not predict_on or not predict_regions:
+  if num_months_prior > len(dates) or not predict_on or not predict_region:
     raise ValueError
 
   dates = np.reshape(dates[:num_months_prior], (len(dates[:num_months_prior]), 1))
@@ -246,11 +250,11 @@ if __name__ == '__main__':
   # print ar2['Victoria']
   # print ar['Victoria'][0]['One_Storey_Benchmark']
   # print ar['Victoria'][0]['Composite_HPI']
-  asd = compare_on_categories(ar2, 'Jan 2005', 12, 'monthly', ['Composite_HPI', 'Single_Family_HPI'])
-  print asd
+  # asd = compare_on_categories(ar2, ['One_Storey_Benchmark'], 'Jan 2005', 12, 'monthly')
+  # print asd
   # vc = compare_on_regions(ar2, None, None, None, ['Victoria', 'Calgary'])
   # print vc
-  # predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
-  # print predicted_price, coef, y_int
+  predicted_price, coef, y_int = predict_by_interval(ar, predict_on='One_Storey_Benchmark', predict_regions='Victoria', num_months_ahead=6)
+  print predicted_price, coef, y_int
   #for key, val in vc.items():
   #  print val
