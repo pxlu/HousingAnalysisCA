@@ -25,6 +25,16 @@ def nice_json(arg, status=200):
   response.headers['Content-Type'] = "application/json"
   return response
 
+def evaluate_params(params):
+
+  # All params are list by default, need to make some cases handling singulars later
+
+  parameters = {str(param.split("=")[0]) : str(param.split("=")[1]) for param in params}
+  for key, value in parameters.items():
+    parameters[key] = value.split('+')
+
+  return parameters
+
 from werkzeug.routing import BaseConverter
 
 class ListConverter(BaseConverter):
