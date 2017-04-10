@@ -1,16 +1,8 @@
 from flask import Flask
-from . import dps, regions_data, nice_json, df_dict_to_json, regions_df_to_json,ListConverter
+from . import dps, regions_data, nice_json, df_dict_to_json, regions_df_to_json, evaluate_params, ListConverter
 
 app = Flask(__name__)
 app.url_map.converters['list'] = ListConverter
-
-def evaluate_params(params):
-
-  parameters = {str(param.split("=")[0]) : str(param.split("=")[1]) for param in params}
-  for key, value in parameters.items():
-    parameters[key] = value.split('+')
-
-  return parameters
 
 def compare(params, compare_on):
 
