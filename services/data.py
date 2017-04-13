@@ -32,15 +32,9 @@ def get_category_data(category):
 @app.route('/predict/<list:predict_params>')
 def simple_predict(predict_params):
 
-  # All params are list by default, need to make some cases handling singulars later
-  
-  out = {}
+  # All params are list by default, need to make some cases handling singulars later  
   parameters = evaluate_params(predict_params)
 
-  # ONLY ONE REGION RIGHT NOW, BUT WILL BE MORE LATER IN A LIST OF REGIONS
-  for region in parameters['predict_region']:
-    region_dict = {}
-    region_dict['predicted_price'], region_dict['coef'], region_dict['y_int'] = dps.predict_by_interval(regions_data, predict_on=parameters['predict_on'][0], predict_region=parameters['predict_region'][0], num_months_ahead=int(parameters['num_months_ahead'][0]))
-    out[region] = region_dict
+  out = dps.predict_by_interval(regions_data, predict_on=parameters['predict_on'][0], predict_regions=parameters['predict_regions'], num_months_ahead=int(parameters['num_months_ahead'][0]))
 
   return nice_json(out)
