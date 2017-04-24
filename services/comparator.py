@@ -22,5 +22,3 @@ def compare_cities(params):
 def compare_categories(params):
 
   return compare(params, 'categories')
-
-
