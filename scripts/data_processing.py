@@ -198,32 +198,34 @@ def compare_on(compare_type, to_compare_dict, values, start_date='Jan 2005', tim
   else:
     return compare_on_categories(to_compare_dict, values, start_date=start_date, time_interval=time_interval, interval_type=interval_type)
 
-def predict_by_interval(data, predict_on=None, predict_region=None, num_months_prior=None, num_months_ahead=12):
+def predict_by_interval(data, predict_on=None, predict_regions=None, num_months_prior=None, num_months_ahead=12):
 
-  # NEED TO MAKE PREDICT WORK FOR A LIST OF REGIONS, CURRENTLY ONLY WORKS FOR ONE AS IT ONLY TAKES IN ONE REGIONS AT A TIME
+  predictions = {}
 
-  # JUST MAKE A FOR LOOP OR SOMETHING...
+  for region in predict_regions:
 
-  dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[predict_region][0]['Date'])]), 12))]
-  region_data = [element for element in data[predict_region][0][predict_on]]
-  region_data = [sum(region_data[current: current+12])/12 for current in xrange(0, len(region_data), 12)]
+    dates = [i for i, b in enumerate(range(0, len([j for j, element in enumerate(data[region][0]['Date'])]), 12))]
+    region_data = [element for element in data[region][0][predict_on]]
+    region_data = [sum(region_data[current: current+12])/12 for current in xrange(0, len(region_data), 12)]
 
-  if num_months_prior is None:
-    num_months_prior = len(dates)
+    if num_months_prior is None:
+      num_months_prior = len(dates)
 
-  if num_months_prior > len(dates) or not predict_on or not predict_region:
-    raise ValueError
+    if num_months_prior > len(dates) or not predict_on or not data[region]:
+      raise ValueError
 
-  dates = np.reshape(dates[:num_months_prior], (len(dates[:num_months_prior]), 1))
-  region_data = np.reshape(region_data[-num_months_prior:], (len(region_data[-num_months_prior:]), 1))
+    dates = np.reshape(dates[:num_months_prior], (len(dates[:num_months_prior]), 1))
+    region_data = np.reshape(region_data[-num_months_prior:], (len(region_data[-num_months_prior:]), 1))
 
-  linear_mod = linear_model.LinearRegression()
-  linear_mod.fit(dates, region_data)
- 
-  prediction = linear_mod.predict(len(dates) + num_months_ahead)
+    linear_mod = linear_model.LinearRegression()
+    linear_mod.fit(dates, region_data)
+   
+    prediction = linear_mod.predict(len(dates) + num_months_ahead)
 
-  # prediction, slope, y-intercept
-  return prediction[0][0], linear_mod.coef_[0][0], linear_mod.intercept_[0]
+    # prediction, slope, y-intercept
+    predictions[region] = [prediction[0][0], linear_mod.coef_[0][0], linear_mod.intercept_[0]]
+
+  return predictions
 
 if __name__ == '__main__':
 
