@@ -20,9 +20,27 @@ def compare(params, compare_on):
 @app.route('/compare/cities/<list:params>')
 def compare_cities(params):
 
-  return compare(params, 'cities')
+  """
+  Format:
+    ...
+  """
+
+  out_data = compare(params, 'cities')
+  if not out_data:
+      error = { "Error" : "No data is available for {}".format(params['cities']) }
+      return nice_json(error, 404)
+  return out_data
 
 @app.route('/compare/categories/<list:params>')
 def compare_categories(params):
+  
+  """
+  Format:
+    ...
+  """
 
-  return compare(params, 'categories')
+  out_data = compare(params, 'categories')
+  if not out_data:
+    error = { "Error" : "No data is available for {}".format(params['categories']) }
+    return nice_json(error, 404)
+  return out_data

@@ -8,11 +8,26 @@ app.url_map.converters['list'] = ListConverter
 # Data for all cities
 @app.route('/data')
 def get_all_data():
+
+  """
+  Format:
+    ...
+  """
+  
+  if not cities_data:
+    error = { "Error" : "Cannot get data for cities." }
+    return nice_json(error, 404)
   return nice_json(cities_data)
 
 # Data for a specific city
 @app.route('/data/<city>')
 def get_city_data(city):
+
+  """
+  Format:
+    ...
+  """
+
   for key, value in cities_data.items():
     if key == city:
       return nice_json(value)
@@ -22,6 +37,12 @@ def get_city_data(city):
 # Data for a specific categories
 @app.route('/category/<category>')
 def get_category_data(category):
+
+  """
+  Format:
+    ...
+  """
+
   category_data = dps.get_specified_category_data('all', regions_data, data_source)
   for key, value in category_data.items():
     if key == category:
@@ -32,9 +53,11 @@ def get_category_data(category):
 @app.route('/predict/<list:predict_params>')
 def simple_predict(predict_params):
 
-  # All params are list by default, need to make some cases handling singulars later  
   parameters = evaluate_params(predict_params)
 
   out = dps.predict_by_interval(regions_data, predict_on=parameters['predict_on'][0], predict_regions=parameters['predict_regions'], num_months_ahead=int(parameters['num_months_ahead'][0]))
 
+  if not out:
+    error = { "Error" : "Cannot make a prediction for {}".format(parameters['predict_region']) }
+    return nice_json(error, 404)
   return nice_json(out)
