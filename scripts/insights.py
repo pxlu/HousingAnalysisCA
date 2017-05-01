@@ -11,13 +11,20 @@ import os
 
 def calculate_ratio(name, city_1, city_2, city_1_value, city_2_value, date=None):
 
+  reverse = False
   if not date:
     return False
-  ratio = city_1_value[date] / city_2_value[date]
-  # Reformat later using decimal notation [2fe or something...]
-  # Need to change as:
-    # For [name], on [Date], [Larger_Value_City] is [ratio]% over [Smaller_Value_Cities] 
-  return "For {}, the ratio between {} and {} is {}".format(name, city_1, city_2, "1 : "+str(1+ratio))
+  c1_v, c2_v = city_1_value[date], city_2_value[date]
+  if c1_v > c2_v:
+    larger_value,smaller_value = c1_v,c2_v
+  else:
+    larger_value,smaller_value = c2_v,c1_v
+    reverse = True
+  ratio = larger_value / smaller_value
+  if not reverse: 
+    return "On {}, {}'s {} is {}% greater than {}'s".format(date, city_1, name, round((ratio-1)*100, 2), city_2)
+  else:
+    return "On {}, {}'s {} is {}% greater than {}'s".format(date, city_2, name, round((ratio-1)*100, 2), city_1)
 
 def one_vs_one_cities(json_name, city_1, city_2, compare_on):
 
