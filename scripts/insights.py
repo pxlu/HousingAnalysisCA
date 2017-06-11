@@ -47,7 +47,7 @@ def calculate_ratio_multi_dates(compare_type, compare_on, comparator_1, comparat
 def one_vs_all_cities(json_name, city, compare_on, dates):
 
   data = load_json(json_name)
-  out = {city + " vs " + city_name : one_vs_one_categories('cities', data, city, city_name, compare_on, dates) for city_name in data.keys() if city_name != city}
+  out = {city + " vs " + city_name : one_vs_one_comparison('cities', data, city, city_name, compare_on, dates) for city_name in data.keys() if city_name != city}
 
   return out
 
